@@ -133,8 +133,6 @@
 			include_module($module_name);
 		}		
 	}
-
-	$GLOBALS = [];
 	
 	$GLOBALS["php_now"] = date("Y-m-d H:i:s T");
 	$GLOBALS["app_timezone"]["php_date_timezone_returns"] = date("T");	

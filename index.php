@@ -79,6 +79,9 @@
 				<!--input-bottom -->
 				<form id="send_msg" class="send_msg_form chatbox-input">
 					<i class="fa-sharp fa-solid fa-paperclip"></i>
+					<button type="button" id="recordVoice" class="voice-btn">
+        				<i class="fa-solid fa-microphone"></i>
+    				</button>
 					<input id="msg" type="text" placeholder="Type a message" required />
 					<button class="submit_msg">
 						<i class="fa-solid fa-paper-plane"></i>
