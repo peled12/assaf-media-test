@@ -1,7 +1,3 @@
-// TODO: put it all in a github repo
-
-const DELETED_MSG_TEXT = "הודעה זו נמחקה";
-
 // load the notification sound once
 const msgNotifySound = new Audio("assets/sounds/msg-notification.wav");
 
@@ -40,6 +36,7 @@ $.globals = {
   loggedIn: true,
   lastTimeSentMsg: 0,
   isLoadingMsgs: 0,
+  deletedMsgText: "הודעה זו נמחקה",
   longPressTimer: null,
   thisContact: {
     profile_picture_url: null,
@@ -47,9 +44,6 @@ $.globals = {
 };
 
 $.intervals = {};
-
-var mediaRecorder; // accessible by all functions in this script
-var audioChunks = []; // persist recorded data until sending or canceling
 
 var consoleLog = function (...args) {
   if (!$.settings.allowConsoleLog) {
@@ -155,7 +149,7 @@ var postToServer = async function ($arguments = null) {
             Login: {
               text: "Log In",
               action: function () {
-                window.location.replace("http://localhost:3000"); // Go to the login page
+                window.location.replace(window.LOGIN_URL); // Go to the login page
               },
             },
           },
@@ -288,7 +282,7 @@ var proccessMsgsArr = async function (msgs) {
       $elm += buildDeletedMessageBox(
         $msgHTMLId,
         $isFromMeOrOtherSideCssClass,
-        DELETED_MSG_TEXT,
+        $.globals.deletedMsgText,
         $msgId
       );
     }
@@ -514,7 +508,7 @@ var getChats = async function (
             $profilePicture,
             $contactName,
             $msgTime,
-            DELETED_MSG_TEXT
+            $.globals.deletedMsgText
           );
         }
         if ($chatType === "text") {
@@ -690,11 +684,18 @@ var startVoiceRecording = async function () {
   $("#recordVoice").after($container);
 
   // Start recording
-  audioChunks = [];
+  var mediaRecorder;
+  var audioChunks = [];
 
   try {
     // Request mic access and get audio stream
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .catch((e) => {
+        alert("Microphone access denied.");
+        console.error("Error accessing microphone:", e);
+        throw e;
+      });
 
     // Create AudioContext and AnalyserNode
     const audioContext = new (window.AudioContext ||
@@ -715,10 +716,12 @@ var startVoiceRecording = async function () {
 
     mediaRecorder.onstop = function () {
       console.log("Recording stopped.");
-      $sendBtn.prop("disabled", false);
     };
 
+    console.log("MediaRecorder created", mediaRecorder, mediaRecorder.state);
     mediaRecorder.start();
+    console.log("After start", mediaRecorder.state);
+
     console.log("Recording started.");
 
     // Cancel button stops recording and removes UI without sending
@@ -740,7 +743,6 @@ var startVoiceRecording = async function () {
         // When recording stops, this onstop handler will run:
         mediaRecorder.onstop = function () {
           console.log("Recording stopped.");
-          $sendBtn.prop("disabled", false);
 
           // Stop the microphone stream completely
           stream.getTracks().forEach((track) => track.stop());
@@ -956,7 +958,7 @@ var deleteMessageHandler = function (msgId) {
                 const $msgBox = $("#msg_id_" + msgId);
 
                 // Change the text content inside the message box
-                $msgBox.find("p.content").html(DELETED_MSG_TEXT);
+                $msgBox.find("p.content").html($.globals.deletedMsgText);
               } else {
                 consoleLog("Failed to delete message", {
                   level: 2,
@@ -1241,7 +1243,7 @@ $(window).on("load", function () {
                 console.log(res);
 
                 if (res.success) {
-                  window.location.replace("http://localhost:3000"); // Redirect to login
+                  window.location.replace(window.LOGIN_URL); // Redirect to login
                 }
               },
               errorCallback: (err) => {

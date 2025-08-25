@@ -9,6 +9,8 @@ header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
+require_once __DIR__ . "/utils/cookieHelper.php"; // Include cookie helper
+
 function loadEnv($path)
 {
     if (!file_exists($path)) {
@@ -39,14 +41,14 @@ function login()
     $data = json_decode(file_get_contents("php://input"), true);
 
     $username = trim($data["username"] ?? "");
-    $password = trim($data["password"] ?? "");
+    $password = ($data["password"] ?? "");
     $otp = trim($data["otp"] ?? "");
     $honeypot = trim($data["honeypot"] ?? "");
     $mode = $data["mode"] ?? "";
 
     // Bot check
     if (!empty($honeypot)) {
-        echo json_encode(["success" => false, "message" => "Bot detected."]);
+        echo json_encode(["success" => false, "message" => "Problem logging in."]);
         exit;
     }
 
@@ -204,8 +206,10 @@ function verifyOtp($username, $otp)
     }
 
     // Generate token valid for 1 hour
+    $tokenLifetime = 3600;
     $token = bin2hex(random_bytes(32));
-    $token_expires = date('Y-m-d H:i:s', time() + 3600);
+    $token_expires = date('Y-m-d H:i:s', time() + $tokenLifetime);
+
     mysql_update(
         "users",
         ["token" => $token, "token_expires" => $token_expires, "otp" => null, "otp_expires" => null],
@@ -213,17 +217,7 @@ function verifyOtp($username, $otp)
     );
 
     // Set cookie
-    setcookie(
-        "token",
-        $token,
-        [
-            "expires" => time() + 3600,  // 1 hour
-            "path" => "/",               // accessible site-wide
-            "secure" => false,           // true if using HTTPS
-            "httponly" => true,          // cannot be accessed by JS
-            "samesite" => "Lax"          // adjust as needed
-        ]
-    );
+    setAppCookie(COOKIE_TOKEN, $token, $tokenLifetime);
 
     echo json_encode([
         "success" => true,

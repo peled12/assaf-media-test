@@ -76,7 +76,14 @@
 		error_log($msg);
 		die($msg);
 		die("ERROR 403987390247329874329036789746327");
-	}		
+	}
+
+	$cookieOptions = [
+    	"path" => "/",
+    	"secure" => false,
+    	"httponly" => true,
+    	"samesite" => "Lax"
+	];
 	
 	include_all_modules();	
 	include_all_plugins();

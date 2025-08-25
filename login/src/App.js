@@ -1,6 +1,8 @@
 import "./App.css";
 import { useState } from "react";
 
+import { apiPostRequest } from "./api";
+
 export default function App() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -13,19 +15,19 @@ export default function App() {
   async function handleLogin(e) {
     e.preventDefault();
 
+    // Check honeypot field
     if (honeypot.trim() !== "") {
-      alert("Bot detected");
       return;
     }
 
     try {
-      const res = await fetch("http://localhost/Assaf_Media_Test/login.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, honeypot, mode: "login" }),
+      const data = await apiPostRequest("login.php", {
+        username,
+        password,
+        honeypot,
+        mode: "login",
       });
 
-      const data = await res.json();
       console.log(data);
 
       if (data.success) {
@@ -45,21 +47,19 @@ export default function App() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost/Assaf_Media_Test/login.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, otp, mode: "verify_otp" }),
-        credentials: "include", // Include cookies
+      const data = await apiPostRequest("login.php", {
+        username,
+        otp,
+        mode: "verify_otp",
       });
 
-      const data = await res.json();
       console.log(data);
 
       if (data.success) {
         setMessage("OTP verified! You are logged in.");
 
         // Navigate to the app
-        window.location.href = "http://localhost/Assaf_Media_Test/";
+        window.location.href = process.env.REACT_APP_APP_URL;
       } else {
         alert(data.message);
       }
@@ -72,15 +72,12 @@ export default function App() {
   // Resend OTP function
   async function handleResendOtp() {
     try {
-      const res = await fetch("http://localhost/Assaf_Media_Test/login.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, mode: "request_otp" }),
+      const data = await apiPostRequest("login.php", {
+        username,
+        mode: "request_otp",
       });
 
-      const data = await res.json();
       console.log(data);
-
       setMessage(data.message);
     } catch (err) {
       console.error(err);

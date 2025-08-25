@@ -96,6 +96,8 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.min.js"></script>
 
+		<script>window.LOGIN_URL = "http://localhost:3000";</script>
+
 		<script src="./assets/js/main.js?v=<?php echo time(); ?>"></script>
 		
 	</body>

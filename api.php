@@ -3,6 +3,7 @@ define("a328763fe27bba", "TRUE");
 
 #region start
 require_once("config.php");
+require_once __DIR__ . "/utils/cookieHelper.php"; // Include cookie helper
 $allowed_origins = [
     "http://localhost:3000",
     "http://localhost/Assaf_Media"
@@ -383,17 +384,7 @@ switch ($data) {
         $result = mysql_query($query);
 
         // Invalidate the cookie
-        setcookie(
-            "token",
-            "",
-            [
-                "expires" => time() - 3600,  // past time to delete it
-                "path" => "/",
-                "secure" => false,           // true if using HTTPS
-                "httponly" => true,
-                "samesite" => "Lax"
-            ]
-        );
+        deleteAppCookie(COOKIE_TOKEN);
 
         if ($result) {
             echo json_encode(["success" => true]);
